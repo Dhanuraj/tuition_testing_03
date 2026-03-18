@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TuitionQuiz — Smart Quiz for Indian Students</title>
+<meta name="theme-color" content="#0a0914">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0914;--surface:#13112a;--card:#1c1935;--accent1:#7c5cfc;--accent2:#f7c948;--accent3:#3ddcb0;--accent4:#ff6b8a;--accent5:#38bdf8;--text:#f0eeff;--muted:#7a7699;--border:rgba(124,92,252,0.2);--radius:20px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;-webkit-text-size-adjust:100%;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 10% 10%,rgba(124,92,252,0.18) 0%,transparent 50%),radial-gradient(ellipse at 90% 80%,rgba(61,220,176,0.1) 0%,transparent 45%);pointer-events:none;z-index:0;}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite var(--delay,0s);}
+@keyframes twinkle{0%,100%{opacity:0.1;}50%{opacity:0.6;}}
+.wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:0 20px 60px;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:24px 0 32px;gap:12px;flex-wrap:wrap;}
+.logo{font-family:'Fredoka One',cursive;font-size:2rem;background:linear-gradient(135deg,var(--accent1),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.logo span{-webkit-text-fill-color:var(--accent3);}
+.tagline{font-size:0.75rem;color:var(--muted);font-weight:700;margin-top:2px;letter-spacing:0.04em;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.api-btn{display:flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;color:var(--muted);font-size:0.75rem;font-weight:800;cursor:pointer;transition:all 0.15s;}
+.api-btn:hover{border-color:var(--accent1);color:var(--text);}
+#ai-badge{font-size:0.65rem;font-weight:800;border-radius:99px;padding:3px 10px;border:1px solid;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.greeting{text-align:center;margin-bottom:36px;}
+.greeting-title{font-family:'Fredoka One',cursive;font-size:clamp(1.6rem,5vw,2.8rem);line-height:1.15;margin-bottom:8px;}
+.greeting-sub{color:var(--muted);font-size:0.9rem;font-weight:700;}
+.ai-banner{display:none;margin:12px auto 0;max-width:420px;background:rgba(61,220,176,0.08);border:1.5px solid rgba(61,220,176,0.25);border-radius:12px;padding:10px 16px;font-size:0.78rem;font-weight:700;color:var(--accent3);text-align:center;}
+.section-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:20px;}
+.section-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:24px 20px 20px;cursor:pointer;transition:transform 0.2s,border-color 0.2s,box-shadow 0.2s;text-decoration:none;display:block;position:relative;overflow:hidden;animation:cardIn 0.4s ease both;}
+.section-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.25s;}
+.section-card:hover{transform:translateY(-5px);}
+.section-card:hover::before{opacity:1;}
+.s-tables::before{background:radial-gradient(circle at 50% 0%,rgba(247,201,72,0.12),transparent 70%);}
+.s-tables:hover{border-color:rgba(247,201,72,0.5);box-shadow:0 8px 32px rgba(247,201,72,0.15);}
+.s-gk::before{background:radial-gradient(circle at 50% 0%,rgba(124,92,252,0.15),transparent 70%);}
+.s-gk:hover{border-color:rgba(124,92,252,0.5);box-shadow:0 8px 32px rgba(124,92,252,0.15);}
+.s-math::before{background:radial-gradient(circle at 50% 0%,rgba(61,220,176,0.12),transparent 70%);}
+.s-math:hover{border-color:rgba(61,220,176,0.5);box-shadow:0 8px 32px rgba(61,220,176,0.15);}
+.s-grammar::before{background:radial-gradient(circle at 50% 0%,rgba(255,107,138,0.12),transparent 70%);}
+.s-grammar:hover{border-color:rgba(255,107,138,0.5);box-shadow:0 8px 32px rgba(255,107,138,0.15);}
+.s-reasoning::before{background:radial-gradient(circle at 50% 0%,rgba(247,201,72,0.1),transparent 70%);}
+.s-reasoning:hover{border-color:rgba(247,201,72,0.5);box-shadow:0 8px 32px rgba(247,201,72,0.12);}
+.s-rollcall::before{background:radial-gradient(circle at 50% 0%,rgba(56,189,248,0.15),transparent 70%);}
+.s-rollcall:hover{border-color:rgba(56,189,248,0.5);box-shadow:0 8px 32px rgba(56,189,248,0.2);}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.section-card:nth-child(1){animation-delay:0.05s;}.section-card:nth-child(2){animation-delay:0.1s;}.section-card:nth-child(3){animation-delay:0.15s;}.section-card:nth-child(4){animation-delay:0.2s;}.section-card:nth-child(5){animation-delay:0.25s;}.section-card:nth-child(6){animation-delay:0.3s;}
+.card-num{font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;border-radius:99px;padding:3px 10px;margin-bottom:14px;display:inline-block;border:1px solid;}
+.s-tables .card-num{background:rgba(247,201,72,0.15);color:#f7c948;border-color:rgba(247,201,72,0.3);}
+.s-gk .card-num{background:rgba(124,92,252,0.15);color:#7c5cfc;border-color:rgba(124,92,252,0.3);}
+.s-math .card-num{background:rgba(61,220,176,0.15);color:#3ddcb0;border-color:rgba(61,220,176,0.3);}
+.s-grammar .card-num{background:rgba(255,107,138,0.15);color:#ff6b8a;border-color:rgba(255,107,138,0.3);}
+.s-reasoning .card-num{background:rgba(247,201,72,0.15);color:#f7c948;border-color:rgba(247,201,72,0.3);}
+.s-rollcall .card-num{background:rgba(56,189,248,0.15);color:#38bdf8;border-color:rgba(56,189,248,0.3);}
+.card-icon{font-size:2.8rem;margin-bottom:10px;display:block;}
+.card-title{font-family:'Fredoka One',cursive;font-size:1.4rem;margin-bottom:6px;}
+.s-tables .card-title{color:#f7c948;}.s-gk .card-title{color:#7c5cfc;}.s-math .card-title{color:#3ddcb0;}.s-grammar .card-title{color:#ff6b8a;}.s-reasoning .card-title{color:#f7c948;}.s-rollcall .card-title{color:#38bdf8;}
+.card-desc{font-size:0.8rem;color:var(--muted);font-weight:600;line-height:1.55;margin-bottom:14px;}
+.card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:16px;}
+.tag{font-size:0.65rem;font-weight:800;border-radius:99px;padding:3px 8px;}
+.s-tables .tag{background:rgba(247,201,72,0.1);color:#f7c948;}.s-gk .tag{background:rgba(124,92,252,0.1);color:#7c5cfc;}.s-math .tag{background:rgba(61,220,176,0.1);color:#3ddcb0;}.s-grammar .tag{background:rgba(255,107,138,0.1);color:#ff6b8a;}.s-reasoning .tag{background:rgba(247,201,72,0.1);color:#f7c948;}.s-rollcall .tag{background:rgba(56,189,248,0.1);color:#38bdf8;}
+.card-cta{font-family:'Fredoka One',cursive;font-size:0.9rem;border-radius:10px;padding:8px 16px;display:inline-block;transition:transform 0.12s;}
+.section-card:hover .card-cta{transform:translateX(4px);}
+.s-tables .card-cta{background:rgba(247,201,72,0.12);color:#f7c948;}.s-gk .card-cta{background:rgba(124,92,252,0.12);color:#7c5cfc;}.s-math .card-cta{background:rgba(61,220,176,0.12);color:#3ddcb0;}.s-grammar .card-cta{background:rgba(255,107,138,0.12);color:#ff6b8a;}.s-reasoning .card-cta{background:rgba(247,201,72,0.12);color:#f7c948;}.s-rollcall .card-cta{background:rgba(56,189,248,0.12);color:#38bdf8;}
+.admin-lock{position:absolute;top:14px;right:14px;font-size:0.62rem;font-weight:800;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;border-radius:99px;padding:3px 9px;}
+.level-legend{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-top:8px;}
+.legend-title{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);margin-bottom:14px;}
+.legend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:0.78rem;font-weight:700;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:9000;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;animation:fadeIn 0.2s ease;}
+.modal{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:28px 24px;max-width:440px;width:calc(100% - 32px);position:relative;box-shadow:0 24px 60px rgba(0,0,0,0.6);animation:slideUp 0.25s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;width:32px;height:32px;color:var(--muted);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+.modal-title{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--accent1);margin-bottom:4px;}
+.modal-sub{font-size:0.77rem;color:var(--muted);font-weight:700;margin-bottom:18px;line-height:1.5;}
+.modal-info{background:rgba(61,220,176,0.07);border:1.5px solid rgba(61,220,176,0.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:0.75rem;color:var(--muted);font-weight:700;line-height:1.6;}
+.field-label{display:block;font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);margin-bottom:7px;}
+.api-input{width:100%;background:var(--surface);border:2px solid var(--accent1);border-radius:12px;padding:11px 14px;color:var(--text);font-family:'Nunito',sans-serif;font-size:0.9rem;font-weight:700;outline:none;box-sizing:border-box;margin-bottom:6px;}
+.modal-link{font-size:0.7rem;color:var(--muted);font-weight:700;margin-bottom:16px;display:block;}
+.modal-link a{color:var(--accent1);}
+.modal-actions{display:flex;gap:8px;}
+.btn-save{flex:1;background:linear-gradient(135deg,var(--accent1),#a07aff);border:none;border-radius:12px;padding:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer;}
+.btn-remove{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:800;cursor:pointer;}
+.modal-warning{margin-top:12px;background:rgba(255,107,138,0.07);border:1px solid rgba(255,107,138,0.2);border-radius:8px;padding:9px 12px;font-size:0.68rem;color:var(--muted);font-weight:700;line-height:1.6;}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1.5px solid var(--accent1);border-radius:99px;padding:10px 22px;font-family:'Fredoka One',cursive;font-size:1rem;color:var(--text);box-shadow:0 6px 24px rgba(124,92,252,0.3);z-index:9999;opacity:0;transition:transform 0.3s ease,opacity 0.3s ease;pointer-events:none;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+@media(max-width:600px){.section-grid{grid-template-columns:1fr;}.greeting-title{font-size:1.8rem;}.legend-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <div class="logo">Tuition<span>Quiz</span> ✦</div>
+      <div class="tagline">Smart quiz for Indian students 🎓</div>
+    </div>
+    <div class="header-right">
+      <span id="ai-badge" onclick="openApiModal()"></span>
+      <button class="api-btn" onclick="openApiModal()">🤖 AI Key</button>
+    </div>
+  </div>
+  <div class="greeting">
+    <div class="greeting-title">Choose your <span style="background:linear-gradient(135deg,var(--accent1),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Quiz Section</span> 👇</div>
+    <div class="greeting-sub">6 sections · AI-powered · Adaptive difficulty · Auto timer by level</div>
+    <div class="ai-banner" id="ai-banner">✨ <strong>AI Mode Active</strong> — Fresh questions generated by Claude every session!</div>
+  </div>
+  <div class="section-grid">
+    <a class="section-card s-tables" href="tables.html">
+      <div class="card-num">Section 1</div>
+      <span class="card-icon">✖️</span>
+      <div class="card-title">Times Tables</div>
+      <div class="card-desc">Adaptive multiplication quiz. Choose range, set difficulty. Auto-timer kicks in at Hard level and above!</div>
+      <div class="card-tags"><span class="tag">×1 to ×12</span><span class="tag">Any range</span><span class="tag">Type answer</span><span class="tag">6 levels</span></div>
+      <span class="card-cta">Play now →</span>
+    </a>
+    <a class="section-card s-gk" href="gk.html">
+      <div class="card-num">Section 2</div>
+      <span class="card-icon">🌍</span>
+      <div class="card-title">General Knowledge</div>
+      <div class="card-desc">India-focused GK. AI generates unlimited fresh questions at the exact difficulty you pick!</div>
+      <div class="card-tags"><span class="tag">🇮🇳 National Symbols</span><span class="tag">History</span><span class="tag">Science</span><span class="tag">AI ✨</span></div>
+      <span class="card-cta">Explore →</span>
+    </a>
+    <a class="section-card s-math" href="math.html">
+      <div class="card-num">Section 3</div>
+      <span class="card-icon">🧮</span>
+      <div class="card-title">Math Calculations</div>
+      <div class="card-desc">7 operations — Add, Sub, Mul, Div, Squares, Cubes, Percentage. AI generates contextual word problems!</div>
+      <div class="card-tags"><span class="tag">➕ ➖ ✖️ ➗</span><span class="tag">² ³ %</span><span class="tag">Word Problems</span><span class="tag">AI ✨</span></div>
+      <span class="card-cta">Calculate →</span>
+    </a>
+    <a class="section-card s-grammar" href="grammar.html">
+      <div class="card-num">Section 4</div>
+      <span class="card-icon">📝</span>
+      <div class="card-title">Grammar</div>
+      <div class="card-desc">Parts of speech, Hindi↔English translation, silent letters. AI generates detailed explanations!</div>
+      <div class="card-tags"><span class="tag">Parts of Speech</span><span class="tag">Hindi↔English</span><span class="tag">Silent Letters</span><span class="tag">AI ✨</span></div>
+      <span class="card-cta">Practice →</span>
+    </a>
+    <a class="section-card s-reasoning" href="reasoning.html">
+      <div class="card-num">Section 5</div>
+      <span class="card-icon">🧠</span>
+      <div class="card-title">Reasoning</div>
+      <div class="card-desc">Full SSC syllabus — Series, Analogy, Coding-Decoding, Blood Relations, Directions, Puzzles & more!</div>
+      <div class="card-tags"><span class="tag">Series</span><span class="tag">Analogy</span><span class="tag">Coding</span><span class="tag">Puzzles</span></div>
+      <span class="card-cta">Start Reasoning →</span>
+    </a>
+    <a class="section-card s-rollcall" href="rollcall.html">
+      <div class="admin-lock">🔒 Admin Only</div>
+      <div class="card-num">Admin</div>
+      <span class="card-icon">🎲</span>
+      <div class="card-title">Roll Call Mode</div>
+      <div class="card-desc">Enter roll numbers, mark absent students. Quiz picks students randomly — one question per student per round!</div>
+      <div class="card-tags"><span class="tag">All Sections</span><span class="tag">Round-by-Round</span><span class="tag">Leaderboard</span><span class="tag">🔒 Admin</span></div>
+      <span class="card-cta">Open Roll Call →</span>
+    </a>
+  </div>
+  <div class="level-legend">
+    <div class="legend-title">📊 Difficulty Levels — Applies to All Sections</div>
+    <div class="legend-grid">
+      <div class="legend-item"><div class="legend-dot" style="background:#3ddcb0;"></div> 🟢 Easy — No timer</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f7c948;"></div> 🟡 Medium — No timer</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fb923c;"></div> 🟠 Hard — 30s auto</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff6b8a;"></div> 🔴 Hardest — 20s auto</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7c5cfc;"></div> 💜 Master — 15s auto</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ffd700;"></div> 👑 King — 10s forced</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="api-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeApiModal()">✕</button>
+    <div class="modal-title">🤖 AI Question Generator</div>
+    <div class="modal-sub">Add your Anthropic API key to unlock <strong style="color:var(--accent3);">unlimited AI-generated questions</strong> — unique every session!</div>
+    <div class="modal-info">📚 <strong>Without key:</strong> Uses built-in question bank<br>✨ <strong>With key:</strong> Claude AI generates questions at the exact difficulty you pick</div>
+    <label class="field-label">Anthropic API Key</label>
+    <input type="password" id="api-input" class="api-input" placeholder="sk-ant-api03-..." onfocus="if(this.value.startsWith('••')){this.value='';this.type='text';}" onblur="if(this.value&&!this.value.startsWith('••')){this.type='password';}"/>
+    <span class="modal-link">Get your key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys</span>
+    <div class="modal-actions">
+      <button class="btn-save" onclick="saveKey()">💾 Save &amp; Enable AI</button>
+      <button class="btn-remove" onclick="removeKey()">Remove</button>
+    </div>
+    <div class="modal-warning">🔒 Stored only in your browser's localStorage — never sent anywhere except Anthropic's API.</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){const c=document.getElementById('stars');for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2.5+0.5;s.style.cssText='width:'+sz+'px;height:'+sz+'px;top:'+Math.random()*100+'%;left:'+Math.random()*100+'%;--d:'+(Math.random()*4+2).toFixed(1)+'s;--delay:-'+(Math.random()*4).toFixed(1)+'s;';c.appendChild(s);}})();
+function getKey(){return localStorage.getItem('tq_api_key')||'';}
+function openApiModal(){document.getElementById('api-modal').classList.add('open');const k=getKey();const inp=document.getElementById('api-input');inp.value=k?'••••••••'+k.slice(-6):'';inp.type='password';}
+function closeApiModal(){document.getElementById('api-modal').classList.remove('open');}
+function saveKey(){const v=document.getElementById('api-input').value.trim();if(!v||v.startsWith('••')){toast('⚠️ Paste a valid API key');return;}if(!v.startsWith('sk-ant')){toast('⚠️ Key must start with sk-ant...');return;}localStorage.setItem('tq_api_key',v);closeApiModal();updateBadge();toast('✅ API key saved! AI mode enabled.');}
+function removeKey(){localStorage.removeItem('tq_api_key');closeApiModal();updateBadge();toast('🗑️ API key removed.');}
+function updateBadge(){const has=!!getKey();const b=document.getElementById('ai-badge');const banner=document.getElementById('ai-banner');b.textContent=has?'✨ AI Mode':'📚 Bank Mode';b.style.cssText=has?'font-size:0.65rem;font-weight:800;border-radius:99px;padding:3px 10px;border:1px solid rgba(61,220,176,0.3);background:rgba(61,220,176,0.12);color:#3ddcb0;cursor:pointer;':'font-size:0.65rem;font-weight:800;border-radius:99px;padding:3px 10px;border:1px solid rgba(124,92,252,0.3);background:rgba(124,92,252,0.12);color:#7c5cfc;cursor:pointer;';if(banner)banner.style.display=has?'block':'none';}
+document.getElementById('api-modal').addEventListener('click',function(e){if(e.target===this)closeApiModal();});
+function toast(msg,dur=2400){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),dur);}
+updateBadge();
+
+// ── AUTO-INIT API KEY (teacher sets once, works for all students) ──
+(function initAIKey(){
+  var HARDCODED_KEY = "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";
+  // Auto-save key if not already saved
+  if(HARDCODED_KEY !== "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" && !localStorage.getItem('tq_api_key')){
+    localStorage.setItem('tq_api_key', HARDCODED_KEY);
+  }
+  // Show welcome popup once per browser session
+  if(!sessionStorage.getItem('tq_welcomed')){
+    sessionStorage.setItem('tq_welcomed','1');
+    setTimeout(function(){
+      var ov=document.getElementById('ai-ready-overlay');
+      if(ov) ov.style.display='flex';
+    }, 350);
+  }
+  if(typeof updateBadge==='function') setTimeout(updateBadge, 50);
+})();
+function closeAIReady(){
+  var ov=document.getElementById('ai-ready-overlay');
+  if(ov){
+    ov.style.transition='opacity 0.3s ease';
+    ov.style.opacity='0';
+    setTimeout(function(){ov.style.display='none';ov.style.opacity='1';},300);
+  }
+}
+</script>
+
+  <!-- AI Ready popup (first visit per session) -->
+  <div id="ai-ready-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:9998;align-items:center;justify-content:center;">
+    <div style="background:var(--card);border:2px solid rgba(61,220,176,0.4);border-radius:24px;padding:36px 28px;max-width:360px;width:calc(100% - 32px);text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+      <div style="font-size:3rem;margin-bottom:14px;">&#10024;</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--accent3);margin-bottom:8px;">AI Quiz Ready!</div>
+      <div style="font-size:0.86rem;color:var(--muted);font-weight:700;line-height:1.75;margin-bottom:24px;">
+        All questions are generated fresh by<br>
+        <strong style="color:var(--text);">Claude AI</strong> &#8212; unique every session!<br>
+        <span style="font-size:0.8rem;color:var(--accent3);">&#127919; 6 difficulty levels &nbsp;&#9201; Auto timer</span>
+      </div>
+      <button onclick="closeAIReady()" style="width:100%;background:linear-gradient(135deg,#3ddcb0,#1fb89a);border:none;border-radius:14px;padding:16px;color:#0f0e1a;font-family:'Fredoka One',cursive;font-size:1.3rem;cursor:pointer;box-shadow:0 6px 20px rgba(61,220,176,0.3);letter-spacing:0.02em;">
+        Let&#8217;s Go! &#128640;
+      </button>
+    </div>
+  </div>
+</body>
+</html>

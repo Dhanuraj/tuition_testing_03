@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Roll Call Mode — TuitionQuiz</title>
+<meta name="theme-color" content="#0a0914">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0914;--surface:#13112a;--card:#1c1935;--accent1:#7c5cfc;--accent2:#f7c948;--accent3:#3ddcb0;--accent4:#ff6b8a;--accent5:#38bdf8;--text:#f0eeff;--muted:#7a7699;--border:rgba(124,92,252,0.2);--correct:#3ddcb0;--wrong:#ff6b8a;--radius:18px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+input[type=number]{-moz-appearance:textfield;}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+html{font-size:16px;-webkit-text-size-adjust:100%;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 10% 10%,rgba(56,189,248,0.14) 0%,transparent 50%),radial-gradient(ellipse at 90% 80%,rgba(61,220,176,0.08) 0%,transparent 50%);pointer-events:none;z-index:0;}
+.wrap{max-width:720px;margin:0 auto;padding:16px 16px 80px;position:relative;z-index:1;}
+.site-header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 24px;gap:12px;}
+.logo{font-family:'Fredoka One',cursive;font-size:1.6rem;background:linear-gradient(135deg,var(--accent5),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;}
+.btn-home{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:7px 14px;color:var(--muted);font-size:0.78rem;font-weight:800;cursor:pointer;transition:all 0.15s;text-decoration:none;}
+.btn-home:hover{color:var(--text);border-color:var(--accent5);}
+
+/* ── PASSWORD ── */
+.lock-card{background:var(--card);border:1.5px solid rgba(56,189,248,0.25);border-radius:var(--radius);padding:40px 28px;max-width:400px;margin:60px auto 0;text-align:center;}
+.lock-icon{font-size:3rem;margin-bottom:14px;display:block;}
+.lock-title{font-family:'Fredoka One',cursive;font-size:1.5rem;color:var(--accent5);margin-bottom:6px;}
+.lock-sub{color:var(--muted);font-size:0.82rem;font-weight:600;margin-bottom:22px;}
+.lock-input{width:100%;background:var(--surface);border:2px solid var(--accent5);border-radius:12px;padding:13px 16px;color:var(--text);font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;outline:none;text-align:center;letter-spacing:3px;margin-bottom:14px;}
+.btn-blue{background:linear-gradient(135deg,var(--accent5),#0ea5e9);border:none;border-radius:14px;padding:14px 20px;color:#fff;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;width:100%;transition:transform 0.12s;box-shadow:0 5px 20px rgba(56,189,248,0.28);}
+.btn-blue:hover{transform:translateY(-2px);}
+.lock-error{color:var(--wrong);font-size:0.84rem;font-weight:700;margin-top:8px;display:none;}
+
+/* ── SETUP ── */
+.setup-card{background:var(--card);border:1.5px solid rgba(56,189,248,0.25);border-radius:var(--radius);padding:28px;margin-bottom:14px;}
+.setup-title{font-family:'Fredoka One',cursive;font-size:1.4rem;color:var(--accent5);margin-bottom:18px;}
+.field-label{display:block;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);margin-bottom:8px;}
+.row-inputs{display:flex;gap:12px;margin-bottom:16px;}
+.row-inputs .field-wrap{flex:1;}
+.mini-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Fredoka One',cursive;font-size:1.4rem;text-align:center;outline:none;transition:border-color 0.2s;}
+.mini-input:focus{border-color:var(--accent5);}
+.absent-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--text);font-family:'Nunito',sans-serif;font-size:0.9rem;font-weight:700;outline:none;transition:border-color 0.2s;margin-bottom:6px;}
+.absent-input:focus{border-color:var(--accent4);}
+.absent-hint{font-size:0.73rem;color:var(--muted);font-weight:700;margin-bottom:16px;}
+.section-checks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+@media(max-width:480px){.section-checks{grid-template-columns:1fr 1fr;}}
+.sec-check{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:11px 8px;cursor:pointer;text-align:center;transition:all 0.15s;user-select:none;}
+.sec-check:hover{border-color:var(--accent5);}
+.sec-check.checked{border-color:var(--accent5);background:rgba(56,189,248,0.12);}
+.sec-check .s-icon{font-size:1.4rem;margin-bottom:4px;}
+.sec-check .s-name{font-size:0.72rem;font-weight:800;color:var(--text);}
+
+/* Difficulty + Timer Pills */
+.pills-section{margin-bottom:14px;}
+.pills-label{display:block;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);margin-bottom:8px;}
+.pills-row{display:flex;flex-wrap:wrap;gap:6px;}
+.pill{padding:7px 13px;border-radius:99px;font-size:0.76rem;font-weight:800;cursor:pointer;border:2px solid var(--border);background:var(--surface);color:var(--muted);transition:all 0.15s;user-select:none;white-space:nowrap;}
+.pill.lv-active[data-lv="1"]{background:rgba(61,220,176,0.15);border-color:var(--accent3);color:var(--accent3);}
+.pill.lv-active[data-lv="2"]{background:rgba(247,201,72,0.15);border-color:var(--accent2);color:var(--accent2);}
+.pill.lv-active[data-lv="3"]{background:rgba(251,146,60,0.15);border-color:#fb923c;color:#fb923c;}
+.pill.lv-active[data-lv="4"]{background:rgba(255,107,138,0.15);border-color:var(--accent4);color:var(--accent4);}
+.pill.lv-active[data-lv="5"]{background:rgba(124,92,252,0.2);border-color:var(--accent1);color:var(--accent1);}
+.pill.lv-active[data-lv="6"]{background:rgba(255,215,0,0.18);border-color:#ffd700;color:#ffd700;}
+.pill.tm-active{background:rgba(56,189,248,0.15);border-color:var(--accent5);color:var(--accent5);}
+.pill.tm-active[data-sec="0"]{background:rgba(136,128,170,0.15);border-color:var(--muted);color:var(--muted);}
+.pill.qps-active{background:rgba(56,189,248,0.2)!important;border-color:var(--accent5)!important;color:var(--accent5)!important;box-shadow:0 0 0 3px rgba(56,189,248,0.15);}
+.timer-auto-note{font-size:0.7rem;color:var(--accent3);font-weight:700;margin-top:6px;display:none;}
+
+.btn-sky{background:linear-gradient(135deg,var(--accent5),#0ea5e9);border:none;border-radius:14px;padding:14px;color:#fff;font-family:'Fredoka One',cursive;font-size:1.15rem;cursor:pointer;width:100%;transition:transform 0.12s;box-shadow:0 5px 20px rgba(56,189,248,0.28);}
+.btn-sky:hover{transform:translateY(-2px);}
+.btn-ghost{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:13px;color:var(--text);font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer;flex:1;transition:transform 0.12s;}
+.btn-ghost:hover{transform:translateY(-2px);}
+.error-box{background:rgba(255,107,138,0.1);border:1.5px solid rgba(255,107,138,0.3);border-radius:12px;padding:11px 16px;color:var(--wrong);font-weight:700;text-align:center;margin-top:12px;font-size:0.88rem;display:none;}
+
+/* ── QUIZ HEADER ── */
+.quiz-header-bar{background:var(--card);border:1.5px solid rgba(56,189,248,0.2);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px;animation:slideDown 0.35s ease both;}
+.qh-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.qh-round{font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--accent5);}
+.qh-sub{font-size:0.9rem;font-weight:800;color:var(--muted);margin-top:4px;}
+.qh-score-row{display:flex;gap:8px;align-items:center;}
+.mini-score{background:var(--surface);border-radius:10px;padding:10px 18px;text-align:center;}
+.mini-score .ms-num{font-family:'Fredoka One',cursive;font-size:1.8rem;}
+.mini-score .ms-lbl{font-size:0.72rem;font-weight:800;text-transform:uppercase;color:var(--muted);}
+.ms-correct .ms-num{color:var(--correct);}.ms-wrong .ms-num{color:var(--wrong);}
+/* Roll queue */
+.queue-strip{display:none;}
+/* Timer */
+.timer-wrap{display:flex;align-items:center;gap:14px;background:var(--card);border:2px solid var(--border);border-radius:14px;padding:12px 24px;margin-bottom:16px;justify-content:center;transition:border-color 0.3s;}
+.timer-wrap.warn{border-color:rgba(255,107,138,0.6);}
+.timer-ring{width:64px;height:64px;flex-shrink:0;transform:rotate(-90deg);}
+.timer-ring-bg{fill:none;stroke:var(--surface);stroke-width:4;}
+.timer-ring-bar{fill:none;stroke:var(--accent5);stroke-width:4;stroke-linecap:round;stroke-dasharray:113;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear,stroke 0.3s;}
+.timer-ring-bar.warn{stroke:var(--wrong);}
+.timer-num{font-family:'Fredoka One',cursive;font-size:3rem;color:var(--accent5);min-width:52px;text-align:center;transition:color 0.3s;line-height:1;}
+.timer-num.warn{color:var(--wrong);}
+.timer-lbl{font-size:0.9rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+/* Student card */
+/* Fullscreen announcement overlay */
+.announce-overlay{position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;animation:fadeIn 0.25s ease;}
+.announce-overlay.fade-out{animation:fadeOut 0.4s ease forwards;}
+.announce-label{font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:0.14em;color:var(--muted);margin-bottom:18px;}
+.announce-roll{font-family:'Fredoka One',cursive;font-size:min(22vw,8rem);color:var(--accent5);line-height:1;margin-bottom:16px;text-shadow:0 0 60px rgba(56,189,248,0.35);}
+.announce-sub{font-size:1.1rem;font-weight:800;color:var(--muted);}
+.announce-tap{margin-top:28px;font-size:0.9rem;font-weight:800;color:var(--muted);opacity:0.6;animation:blink 1.2s ease-in-out infinite;}
+@keyframes fadeIn{from{opacity:0;transform:scale(0.94);}to{opacity:1;transform:scale(1);}}
+@keyframes fadeOut{from{opacity:1;transform:scale(1);}to{opacity:0;transform:scale(1.04);}}
+@keyframes blink{0%,100%{opacity:0.4;}50%{opacity:1;}}
+/* Compact spotlight — small chip in header */
+.student-spotlight{display:flex;align-items:center;gap:10px;background:rgba(56,189,248,0.08);border:1.5px solid rgba(56,189,248,0.25);border-radius:12px;padding:10px 16px;margin-bottom:14px;animation:slideDown 0.3s ease 0.1s both;}
+.spotlight-roll{font-family:'Fredoka One',cursive;font-size:1.4rem;color:var(--accent5);line-height:1;}
+.spotlight-label{font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);}
+.spotlight-tag{margin-left:auto;font-size:0.75rem;font-weight:800;border-radius:99px;padding:3px 10px;background:rgba(56,189,248,0.12);color:var(--accent5);border:1px solid rgba(56,189,248,0.25);}
+/* Q card */
+.q-card{background:var(--card);border:2px solid var(--border);border-radius:var(--radius);padding:28px 24px 22px;margin-bottom:20px;transition:border-color 0.25s,box-shadow 0.25s;animation:slideUp 0.35s ease 0.15s both;}
+.q-card.correct-card{border-color:rgba(61,220,176,0.6);box-shadow:0 0 24px rgba(61,220,176,0.15);animation:correctBounce 0.45s ease!important;}
+.q-card.wrong-card{border-color:rgba(255,107,138,0.6);box-shadow:0 0 24px rgba(255,107,138,0.12);animation:shake 0.4s ease!important;}
+.q-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.qbadge{font-size:0.8rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;padding:4px 12px;border-radius:99px;background:rgba(56,189,248,0.15);color:var(--accent5);border:1.5px solid rgba(56,189,248,0.3);}
+.q-text{font-size:2rem;font-weight:800;line-height:1.4;color:var(--text);}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+@media(max-width:440px){.options-grid{grid-template-columns:1fr;}}
+.opt-btn{background:var(--surface);border:2.5px solid var(--border);border-radius:14px;padding:18px 16px;color:var(--text);font-family:'Nunito',sans-serif;font-size:1.3rem;font-weight:800;cursor:pointer;text-align:left;transition:all 0.15s;display:flex;align-items:center;gap:12px;animation:slideUp 0.3s ease both;}
+.opt-btn:hover:not(:disabled){border-color:var(--accent5);background:rgba(56,189,248,0.08);}
+.opt-letter{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:rgba(56,189,248,0.18);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--accent5);}
+.opt-btn.correct-opt{border-color:var(--correct)!important;background:rgba(61,220,176,0.12)!important;}
+.opt-btn.correct-opt .opt-letter{background:var(--correct);color:#fff;}
+.opt-btn.wrong-opt{border-color:var(--wrong)!important;background:rgba(255,107,138,0.1)!important;}
+.opt-btn.wrong-opt .opt-letter{background:var(--wrong);color:#fff;}
+/* Text answer */
+.text-answer-row{display:flex;flex-direction:column;gap:0;margin-bottom:20px;}
+.text-answer-input{width:100%;box-sizing:border-box;background:var(--surface);border:none;border-radius:0;padding:30px 20px 26px;color:var(--text);font-family:'Fredoka One',cursive;font-size:4rem;text-align:center;outline:none;-moz-appearance:textfield;transition:background 0.2s;}
+.text-answer-input:focus{background:rgba(56,189,248,0.06);}
+.btn-submit{width:100%;background:linear-gradient(135deg,#38bdf8,#0284c7);border:none;border-radius:0 0 20px 20px;padding:22px 20px;color:#fff;font-family:'Fredoka One',cursive;font-size:1.8rem;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;box-shadow:0 8px 28px rgba(56,189,248,0.35);letter-spacing:0.03em;margin-top:2px;}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(56,189,248,0.45);}
+.btn-submit:active{transform:translateY(1px);}
+.btn-submit:disabled{opacity:0.45;cursor:not-allowed;transform:none;}
+.text-answer-input::-webkit-outer-spin-button,.text-answer-input::-webkit-inner-spin-button{-webkit-appearance:none;}
+.text-answer-input.correct-inp{background:rgba(61,220,176,0.1);}
+.text-answer-input.wrong-inp{background:rgba(255,107,138,0.08);}
+.feedback-box{border-radius:14px;padding:16px 20px;font-weight:800;text-align:center;font-size:1.5rem;display:none;margin-bottom:12px;animation:slideUp 0.25s ease both;}
+.feedback-box.ok{background:rgba(61,220,176,0.12);border:2px solid rgba(61,220,176,0.4);color:var(--correct);}
+.feedback-box.bad{background:rgba(255,107,138,0.1);border:2px solid rgba(255,107,138,0.35);color:var(--wrong);}
+.btn-next{background:linear-gradient(135deg,var(--accent5),#0ea5e9);border:none;border-radius:14px;padding:18px;color:#fff;font-family:'Fredoka One',cursive;font-size:1.4rem;cursor:pointer;width:100%;transition:transform 0.12s;box-shadow:0 5px 20px rgba(56,189,248,0.28);animation:slideUp 0.3s ease both;}
+.btn-next:hover{transform:translateY(-2px);}
+.enter-hint{text-align:center;font-size:0.72rem;font-weight:700;color:var(--muted);margin-top:6px;display:none;}
+kbd{background:var(--surface);border:1.5px solid var(--border);border-radius:6px;padding:2px 7px;font-family:'Nunito',sans-serif;font-size:0.7rem;font-weight:800;color:var(--accent2);}
+
+/* ── LEADERBOARD ── */
+.lb-card{background:var(--card);border:1.5px solid rgba(56,189,248,0.25);border-radius:var(--radius);padding:28px 22px;margin-bottom:16px;text-align:center;}
+.lb-title{font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--accent5);margin-bottom:6px;}
+.lb-sub{color:var(--muted);font-size:0.8rem;font-weight:700;margin-bottom:22px;}
+.podium-row{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin-bottom:24px;}
+.podium-slot{text-align:center;min-width:80px;}
+.podium-slot .medal{font-size:2rem;}
+.podium-slot .p-roll{font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--text);}
+.podium-slot .p-score{font-size:0.75rem;font-weight:800;color:var(--muted);}
+.podium-slot .p-bar{background:var(--surface);border-radius:8px 8px 0 0;margin:0 auto 6px;transition:height 0.5s ease;}
+.p1 .p-bar{background:linear-gradient(180deg,#ffd700,#e6b830);width:70px;height:80px;}
+.p2 .p-bar{background:linear-gradient(180deg,#c0c0c0,#999);width:60px;height:60px;}
+.p3 .p-bar{background:linear-gradient(180deg,#cd7f32,#a0632b);width:60px;height:45px;}
+.lb-table{width:100%;border-collapse:collapse;text-align:left;font-size:0.84rem;}
+.lb-table th{font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--border);}
+.lb-table td{padding:10px 10px;border-bottom:1px solid rgba(124,92,252,0.08);font-weight:700;}
+.lb-table tr:hover td{background:rgba(56,189,248,0.05);}
+.lb-rank{font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--muted);}
+.lb-roll{font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--accent5);}
+.lb-score{font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--accent3);}
+.lb-pct{font-size:0.78rem;font-weight:800;padding:2px 8px;border-radius:99px;background:rgba(247,201,72,0.1);color:var(--accent2);}
+.lb-actions{display:flex;gap:10px;margin-top:16px;}
+.btn-restart-lb{background:rgba(56,189,248,0.1);border:1.5px solid rgba(56,189,248,0.3);border-radius:12px;padding:12px 18px;color:var(--accent5);font-family:'Fredoka One',cursive;font-size:0.95rem;cursor:pointer;flex:1;}
+
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1.5px solid var(--accent5);border-radius:99px;padding:10px 22px;font-family:'Fredoka One',cursive;font-size:1rem;color:var(--text);box-shadow:0 6px 24px rgba(56,189,248,0.25);z-index:9999;opacity:0;transition:transform 0.3s ease,opacity 0.3s ease;pointer-events:none;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+@keyframes pop{from{transform:scale(0.93);opacity:0;}to{transform:scale(1);opacity:1;}}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes slideDown{from{transform:translateY(-18px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes slideUp{from{transform:translateY(18px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,0);}50%{box-shadow:0 0 0 8px rgba(56,189,248,0.15);}}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+@keyframes correctBounce{0%{transform:scale(1);}30%{transform:scale(1.04);}60%{transform:scale(0.98);}100%{transform:scale(1);}}
+@keyframes countDown{from{stroke-dashoffset:0;}to{stroke-dashoffset:113;}}
+@media(max-width:480px){.podium-row{gap:6px;}.podium-slot{min-width:65px;}.result-actions{flex-direction:column;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="site-header">
+    <a class="logo" href="index.html">TuitionQuiz &#10022;</a>
+    <a class="btn-home" href="index.html">&#127968; Home</a>
+  </div>
+
+  <!-- PASSWORD -->
+  <div id="password-screen">
+    <div class="lock-card">
+      <span class="lock-icon">&#128274;</span>
+      <div class="lock-title">Admin Access</div>
+      <div class="lock-sub">Roll Call Mode is password protected.<br>For teachers only.</div>
+      <input type="password" id="pw-input" class="lock-input" placeholder="Password" autocomplete="off">
+      <button class="btn-blue" onclick="checkPassword()">&#128275; Unlock</button>
+      <div class="lock-error" id="pw-error">&#10060; Wrong password. Try again.</div>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div id="setup-screen" style="display:none;">
+    <div class="setup-card">
+      <div class="setup-title">&#127922; Roll Call Setup</div>
+
+      <span class="field-label">Roll Number Range</span>
+      <div class="row-inputs">
+        <div class="field-wrap"><div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:5px;">From</div><input type="number" id="r-from" class="mini-input" value="1" min="1" max="200"></div>
+        <div style="font-family:'Fredoka One',cursive;font-size:1.4rem;color:var(--muted);padding-top:26px;">&#8594;</div>
+        <div class="field-wrap"><div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:5px;">To</div><input type="number" id="r-to" class="mini-input" value="40" min="1" max="200"></div>
+      </div>
+
+      <span class="field-label">Absent Students (comma-separated roll numbers)</span>
+      <input type="text" id="r-absent" class="absent-input" placeholder="e.g. 3, 15, 22, 31">
+      <div class="absent-hint">Leave blank if everyone is present.</div>
+
+      <span class="field-label">Select Sections</span>
+      <div class="section-checks">
+        <div class="sec-check checked" data-sec="gk" onclick="toggleSec(this)"><div class="s-icon">&#127760;</div><div class="s-name">GK</div></div>
+        <div class="sec-check checked" data-sec="math" onclick="toggleSec(this)"><div class="s-icon">&#129518;</div><div class="s-name">Math</div></div>
+        <div class="sec-check checked" data-sec="grammar" onclick="toggleSec(this)"><div class="s-icon">&#128221;</div><div class="s-name">Grammar</div></div>
+        <div class="sec-check checked" data-sec="reasoning" onclick="toggleSec(this)"><div class="s-icon">&#129504;</div><div class="s-name">Reasoning</div></div>
+        <div class="sec-check" data-sec="tables" onclick="toggleSec(this)"><div class="s-icon">&#10006;&#65039;</div><div class="s-name">Tables</div></div>
+      </div>
+
+
+
+      <!-- Questions per Student -->
+      <div class="pills-section">
+        <span class="pills-label">&#127358; Questions per Student</span>
+        <div class="pills-row" id="qps-pills">
+          <span class="pill qps-active" data-qps="auto" onclick="setQPS('auto',this)">&#9881; Auto</span>
+          <span class="pill" data-qps="1" onclick="setQPS(1,this)">1</span>
+          <span class="pill" data-qps="2" onclick="setQPS(2,this)">2</span>
+          <span class="pill" data-qps="5" onclick="setQPS(5,this)">5</span>
+          <span class="pill" data-qps="7" onclick="setQPS(7,this)">7</span>
+          <span class="pill" data-qps="custom" onclick="setQPS('custom',this)">&#9999; Custom</span>
+        </div>
+        <div id="qps-custom-wrap" style="display:none;margin-top:10px;display:none;">
+          <input type="number" id="qps-custom-input" min="1" max="100" placeholder="Enter number of questions..."
+            style="width:100%;box-sizing:border-box;background:var(--surface);border:2px solid var(--accent5);border-radius:12px;padding:11px 16px;color:var(--text);font-family:'Fredoka One',cursive;font-size:1.2rem;text-align:center;outline:none;"
+            oninput="onQPSCustomInput(this.value)">
+        </div>
+        <div id="qps-info" style="margin-top:8px;font-size:0.72rem;font-weight:700;color:var(--muted);">
+          &#9881; <strong style="color:var(--accent5);">Auto</strong> &mdash; questions keep going until you tap Finish
+        </div>
+      </div>
+
+      <!-- Difficulty Pills -->
+      <div class="pills-section">
+        <span class="pills-label">&#127919; Difficulty Level</span>
+        <div class="pills-row" id="level-pills">
+          <span class="pill lv-active" data-lv="1" onclick="setLevel(1,this)">&#129001; Easy</span>
+          <span class="pill" data-lv="2" onclick="setLevel(2,this)">&#128993; Medium</span>
+          <span class="pill" data-lv="3" onclick="setLevel(3,this)">&#129000; Hard</span>
+          <span class="pill" data-lv="4" onclick="setLevel(4,this)">&#128308; Hardest</span>
+          <span class="pill" data-lv="5" onclick="setLevel(5,this)">&#128156; Master</span>
+          <span class="pill" data-lv="6" onclick="setLevel(6,this)">&#128081; King</span>
+        </div>
+      </div>
+
+      <!-- Timer Pills -->
+      <div class="pills-section">
+        <span class="pills-label">&#9201; Timer per Question</span>
+        <div class="pills-row" id="timer-pills">
+          <span class="pill tm-active" data-sec-t="0" onclick="setTimer(0,this)">Off</span>
+          <span class="pill" data-sec-t="10" onclick="setTimer(10,this)">10s</span>
+          <span class="pill" data-sec-t="15" onclick="setTimer(15,this)">15s</span>
+          <span class="pill" data-sec-t="20" onclick="setTimer(20,this)">20s</span>
+          <span class="pill" data-sec-t="30" onclick="setTimer(30,this)">30s</span>
+          <span class="pill" data-sec-t="45" onclick="setTimer(45,this)">45s</span>
+          <span class="pill" data-sec-t="60" onclick="setTimer(60,this)">60s</span>
+        </div>
+        <div class="timer-auto-note" id="timer-note"></div>
+      </div>
+
+      <button class="btn-sky" onclick="startRollCall()">&#127922; Start Roll Call</button>
+      <div class="error-box" id="rc-error"></div>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz-screen" style="display:none;">
+    <div class="quiz-header-bar">
+      <div class="qh-row">
+        <div>
+          <div class="qh-round" id="round-label">Round 1</div>
+          <div class="qh-sub" id="round-sub">Question 1 of the round</div>
+        </div>
+        <div class="qh-score-row">
+          <div class="mini-score ms-correct"><div class="ms-num" id="total-correct">0</div><div class="ms-lbl">Correct</div></div>
+          <div class="mini-score ms-wrong"><div class="ms-num" id="total-wrong">0</div><div class="ms-lbl">Wrong</div></div>
+          <button onclick="endRollCall()" style="background:rgba(255,107,138,0.1);border:1.5px solid rgba(255,107,138,0.3);border-radius:10px;padding:8px 12px;color:var(--accent4);font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:800;cursor:pointer;">&#127937; Finish</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="queue-strip" id="queue-strip">Up next: ...</div>
+
+    <div class="timer-wrap" id="timer-wrap" style="display:none;">
+      <svg class="timer-ring" viewBox="0 0 40 40"><circle class="timer-ring-bg" cx="20" cy="20" r="18"/><circle class="timer-ring-bar" id="timer-bar" cx="20" cy="20" r="18"/></svg>
+      <div class="timer-num" id="timer-num">--</div>
+      <div class="timer-lbl">sec left</div>
+    </div>
+
+    <div class="student-spotlight">
+      <span style="font-size:1.1rem;">&#127919;</span>
+      <div class="spotlight-label">Your Turn &mdash;</div>
+      <div class="spotlight-roll" id="current-roll">Roll --</div>
+      <div class="spotlight-tag" id="current-tag">0/0 (0%)</div>
+    </div>
+
+    <div class="q-card" id="q-card">
+      <div class="q-meta"><span class="qbadge" id="q-section">Section</span></div>
+      <div class="q-text" id="q-text">Loading...</div>
+    </div>
+
+    <!-- MCQ options -->
+    <div class="options-grid" id="options-grid" style="display:none;"></div>
+
+    <!-- Text answer (for tables/math) -->
+    <div class="text-answer-row" id="text-answer-row" style="display:none;">
+      <div class="answer-wrapper" style="border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(56,189,248,0.2);border:3px solid rgba(56,189,248,0.4);animation:slideUp 0.35s ease 0.2s both;">
+        <input type="number" id="text-answer" class="text-answer-input" placeholder="Type answer...">
+        <button class="btn-submit" onclick="submitText()">&#10003;&nbsp;&nbsp;Submit Answer</button>
+      </div>
+    </div>
+
+    <div class="feedback-box" id="feedback"></div>
+    <button class="btn-next" id="next-btn" onclick="nextStudent()" style="display:none;">Next Student &#8594;</button>
+    <div class="enter-hint" id="next-hint">press <kbd>Enter &#8629;</kbd> for next</div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div id="leaderboard-screen" style="display:none;">
+    <div class="lb-card">
+      <div class="lb-title">&#127942; Leaderboard</div>
+      <div class="lb-sub" id="lb-sub">Round-by-round results</div>
+      <div class="podium-row" id="podium-row"></div>
+      <table class="lb-table">
+        <thead><tr><th>Rank</th><th>Roll</th><th>Correct</th><th>Wrong</th><th>Score %</th></tr></thead>
+        <tbody id="lb-body"></tbody>
+      </table>
+    </div>
+    <div class="lb-actions">
+      <button class="btn-restart-lb" onclick="restartSetup()">&#128260; New Roll Call</button>
+      <button class="btn-restart-lb" onclick="continueRound()">&#9654; Continue Round</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ CONFIG ════════════════════════════════════════════════════
+const PASSWORD = 'Rajsingh8499';
+const LEVELS_CFG = {
+  1:{name:'Easy',timer:0},2:{name:'Medium',timer:0},3:{name:'Hard',timer:30},
+  4:{name:'Hardest',timer:20},5:{name:'Master',timer:15},6:{name:'King',timer:10},
+};
+const LETTERS = ['A','B','C','D'];
+
+// ══ STATE ════════════════════════════════════════════════════
+let students=[],roundOrder=[],roundIdx=0,round=1,answered=false,currentScreen='password';
+let questionsPerStudent='auto',studentQCount={};
+
+let currentLevel=1,timerSecs=0,timerInterval=null;
+let scores={},questions={},totalCorrect=0,totalWrong=0;
+let currentStudent=null,currentQ=null,currentSection='';
+let questionBank=[];
+const seenQ=new Set();
+
+// ══ BUILT-IN QUESTION BANKS ════════════════════════════════
+const GK_POOL=[
+  {q:"What is the national animal of India?",opts:["Lion","Tiger","Elephant","Peacock"],a:"Tiger",sec:"GK"},
+  {q:"What is the national bird of India?",opts:["Eagle","Parrot","Peacock","Crane"],a:"Peacock",sec:"GK"},
+  {q:"Who is called the Father of the Nation?",opts:["Nehru","Gandhi","Bose","Patel"],a:"Gandhi",sec:"GK"},
+  {q:"India's first Prime Minister?",opts:["Sardar Patel","B.R. Ambedkar","Jawaharlal Nehru","Rajendra Prasad"],a:"Jawaharlal Nehru",sec:"GK"},
+  {q:"Which planet is called the Red Planet?",opts:["Venus","Jupiter","Mars","Saturn"],a:"Mars",sec:"GK"},
+  {q:"How many planets in our solar system?",opts:["7","8","9","10"],a:"8",sec:"GK"},
+  {q:"What is the capital of France?",opts:["Lyon","Marseille","Paris","Bordeaux"],a:"Paris",sec:"GK"},
+  {q:"Which is the largest country by area?",opts:["China","Canada","USA","Russia"],a:"Russia",sec:"GK"},
+  {q:"What is the fastest land animal?",opts:["Lion","Horse","Cheetah","Leopard"],a:"Cheetah",sec:"GK"},
+  {q:"Who built the Taj Mahal?",opts:["Akbar","Humayun","Shah Jahan","Aurangzeb"],a:"Shah Jahan",sec:"GK"},
+  {q:"What is the chemical formula of water?",opts:["HO","H2O","H2O2","OH"],a:"H2O",sec:"GK"},
+  {q:"National sport of India?",opts:["Cricket","Football","Hockey","Kabaddi"],a:"Hockey",sec:"GK"},
+  {q:"Which mission landed on Moon's south pole?",opts:["Chandrayaan-1","Chandrayaan-2","Chandrayaan-3","Mangalyaan"],a:"Chandrayaan-3",sec:"GK"},
+  {q:"India's highest civilian honour?",opts:["Padma Shri","Padma Bhushan","Bharat Ratna","Padma Vibhushan"],a:"Bharat Ratna",sec:"GK"},
+  {q:"Who designed the Indian Constitution?",opts:["Nehru","Gandhi","B.R. Ambedkar","Sardar Patel"],a:"B.R. Ambedkar",sec:"GK"},
+  {q:"Iron Man of India?",opts:["Nehru","Gandhi","Sardar Patel","Bhagat Singh"],a:"Sardar Patel",sec:"GK"},
+  {q:"Largest state of India by area?",opts:["Maharashtra","MP","UP","Rajasthan"],a:"Rajasthan",sec:"GK"},
+  {q:"India's first woman PM?",opts:["Pratibha Patil","Sonia Gandhi","Sarojini Naidu","Indira Gandhi"],a:"Indira Gandhi",sec:"GK"},
+  {q:"National tree of India?",opts:["Neem","Peepal","Banyan","Bamboo"],a:"Banyan",sec:"GK"},
+  {q:"National flower of India?",opts:["Rose","Lotus","Sunflower","Jasmine"],a:"Lotus",sec:"GK"},
+];
+const GRAMMAR_POOL=[
+  {q:"Which word is a noun in 'The dog barked loudly'?",opts:["The","dog","barked","loudly"],a:"dog",sec:"Grammar"},
+  {q:"Which is a verb in 'She runs fast'?",opts:["She","runs","fast","None"],a:"runs",sec:"Grammar"},
+  {q:"Which is an adjective in 'The red apple fell'?",opts:["The","red","apple","fell"],a:"red",sec:"Grammar"},
+  {q:"Which letter is silent in 'knife'?",opts:["n","i","f","k"],a:"k",sec:"Grammar"},
+  {q:"Which letter is silent in 'write'?",opts:["r","i","t","w"],a:"w",sec:"Grammar"},
+  {q:"Which letter is silent in 'know'?",opts:["k","n","o","w"],a:"k",sec:"Grammar"},
+  {q:"'She ___ to school every day.' Fill in:",opts:["go","goes","going","gone"],a:"goes",sec:"Grammar"},
+  {q:"Plural of 'child'?",opts:["childs","childes","children","child's"],a:"children",sec:"Grammar"},
+  {q:"'She doesn't like milk' — Is this correct?",opts:["Yes","No, say 'don't'","No, say 'not'","No, say 'no'"],a:"Yes",sec:"Grammar"},
+  {q:"Use 'An' or 'A' before 'apple'?",opts:["A","An","The","None"],a:"An",sec:"Grammar"},
+  {q:"'मैं स्कूल जाता हूँ' means:",opts:["I went to school","I am going","I go to school","I will go"],a:"I go to school",sec:"Grammar"},
+  {q:"'नमस्ते' means:",opts:["Goodbye","Hello/Greetings","Thank you","Sorry"],a:"Hello/Greetings",sec:"Grammar"},
+  {q:"Past tense of 'go'?",opts:["goed","goes","gone","went"],a:"went",sec:"Grammar"},
+  {q:"'He is the ___ student in class.' Fill in with 'best':",opts:["best","good","better","most good"],a:"best",sec:"Grammar"},
+  {q:"What is 'quickly' in 'He runs quickly'?",opts:["Noun","Verb","Adjective","Adverb"],a:"Adverb",sec:"Grammar"},
+];
+const REASONING_POOL=[
+  {q:"Find next: 2, 4, 6, 8, ?",opts:["9","10","11","12"],a:"10",sec:"Reasoning"},
+  {q:"Find next: 1, 4, 9, 16, ?",opts:["20","25","24","36"],a:"25",sec:"Reasoning"},
+  {q:"Doctor : Hospital :: Teacher : ?",opts:["Student","Book","School","Classroom"],a:"School",sec:"Reasoning"},
+  {q:"Odd one out: Apple, Mango, Banana, Carrot",opts:["Apple","Mango","Banana","Carrot"],a:"Carrot",sec:"Reasoning"},
+  {q:"If you face North and turn 90 clockwise, you face:",opts:["South","West","North","East"],a:"East",sec:"Reasoning"},
+  {q:"A is father of B. B is mother of C. A is C's?",opts:["Father","Uncle","Grandfather","Brother"],a:"Grandfather",sec:"Reasoning"},
+  {q:"Find next: A, C, E, G, ?",opts:["H","I","J","K"],a:"I",sec:"Reasoning"},
+  {q:"Find next in AZ, BY, CX, ?",opts:["DW","DV","EW","DE"],a:"DW",sec:"Reasoning"},
+  {q:"If APPLE=BQQMF, CAT=?",opts:["DBU","CBU","DAT","DBS"],a:"DBU",sec:"Reasoning"},
+  {q:"Normal year has how many odd days?",opts:["0","1","2","3"],a:"1",sec:"Reasoning"},
+  {q:"Odd one: Dog, Cat, Tiger, Eagle",opts:["Dog","Cat","Tiger","Eagle"],a:"Eagle",sec:"Reasoning"},
+  {q:"Bird : Fly :: Fish : ?",opts:["Water","Swim","Breathe","Sea"],a:"Swim",sec:"Reasoning"},
+  {q:"Walk 3km West, 4km North. Distance from start?",opts:["5km","7km","6km","3.5km"],a:"5km",sec:"Reasoning"},
+  {q:"30 like cricket, 20 football, 10 both, total 50. Neither?",opts:["3","4","10","5"],a:"10",sec:"Reasoning"},
+  {q:"Find next: 5, 10, 15, 20, ?",opts:["22","24","25","30"],a:"25",sec:"Reasoning"},
+];
+const MATH_POOL=[
+  {q:"18 + 11 = ?",a:"29",sec:"Math",type:"text"},
+  {q:"74 + 63 = ?",a:"137",sec:"Math",type:"text"},
+  {q:"83 − 45 = ?",a:"38",sec:"Math",type:"text"},
+  {q:"7 × 8 = ?",a:"56",sec:"Math",type:"text"},
+  {q:"12 × 9 = ?",a:"108",sec:"Math",type:"text"},
+  {q:"72 ÷ 9 = ?",a:"8",sec:"Math",type:"text"},
+  {q:"126 ÷ 9 = ?",a:"14",sec:"Math",type:"text"},
+  {q:"13² = ?",a:"169",sec:"Math",type:"text"},
+  {q:"15² = ?",a:"225",sec:"Math",type:"text"},
+  {q:"7³ = ?",a:"343",sec:"Math",type:"text"},
+  {q:"25% of 80 = ?",a:"20",sec:"Math",type:"text"},
+  {q:"50% of 120 = ?",a:"60",sec:"Math",type:"text"},
+  {q:"Square of 12 = ?",a:"144",sec:"Math",type:"text"},
+  {q:"10³ = ?",a:"1000",sec:"Math",type:"text"},
+  {q:"75% of 80 = ?",a:"60",sec:"Math",type:"text"},
+];
+const TABLES_POOL=[
+  {q:"6 × 7 = ?",a:"42",sec:"Tables",type:"text"},
+  {q:"8 × 9 = ?",a:"72",sec:"Tables",type:"text"},
+  {q:"7 × 6 = ?",a:"42",sec:"Tables",type:"text"},
+  {q:"9 × 9 = ?",a:"81",sec:"Tables",type:"text"},
+  {q:"12 × 8 = ?",a:"96",sec:"Tables",type:"text"},
+  {q:"11 × 7 = ?",a:"77",sec:"Tables",type:"text"},
+  {q:"13 × 4 = ?",a:"52",sec:"Tables",type:"text"},
+  {q:"15 × 6 = ?",a:"90",sec:"Tables",type:"text"},
+  {q:"7 × 7 = ?",a:"49",sec:"Tables",type:"text"},
+  {q:"8 × 8 = ?",a:"64",sec:"Tables",type:"text"},
+  {q:"9 × 6 = ?",a:"54",sec:"Tables",type:"text"},
+  {q:"11 × 11 = ?",a:"121",sec:"Tables",type:"text"},
+  {q:"4 × 12 = ?",a:"48",sec:"Tables",type:"text"},
+  {q:"5 × 13 = ?",a:"65",sec:"Tables",type:"text"},
+  {q:"6 × 11 = ?",a:"66",sec:"Tables",type:"text"},
+];
+
+// ══ SHUFFLE ═══════════════════════════════════════════════════
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// ══ PASSWORD ═══════════════════════════════════════════════════
+document.getElementById('pw-input').addEventListener('keydown',function(e){if(e.key==='Enter')checkPassword();});
+function checkPassword(){
+  const v=document.getElementById('pw-input').value;
+  if(v===PASSWORD){showScreen('setup');}
+  else{document.getElementById('pw-error').style.display='block';document.getElementById('pw-input').value='';document.getElementById('pw-input').focus();}
+}
+
+// ══ SETUP ══════════════════════════════════════════════════════
+function toggleSec(el){el.classList.toggle('checked');}
+function setLevel(lv,el){currentLevel=lv;document.querySelectorAll('#level-pills .pill').forEach(p=>p.classList.remove('lv-active'));el.classList.add('lv-active');const t=LEVELS_CFG[lv].timer;timerSecs=t;document.querySelectorAll('#timer-pills .pill').forEach(p=>p.classList.remove('tm-active'));const tp=document.querySelector('#timer-pills .pill[data-sec-t="'+t+'"]');if(tp)tp.classList.add('tm-active');const note=document.getElementById('timer-note');note.style.display=lv>=3?'block':'none';note.textContent=lv>=3?'Auto-set '+t+'s for '+LEVELS_CFG[lv].name:'';}
+function setTimer(sec,el){timerSecs=sec;document.querySelectorAll('#timer-pills .pill').forEach(p=>p.classList.remove('tm-active'));el.classList.add('tm-active');}
+
+
+
+function setQPS(val,el){
+  questionsPerStudent=val;
+  document.querySelectorAll('#qps-pills .pill').forEach(p=>p.classList.remove('qps-active'));
+  el.classList.add('qps-active');
+  const wrap=document.getElementById('qps-custom-wrap');
+  const info=document.getElementById('qps-info');
+  if(val==='custom'){
+    wrap.style.display='block';
+    setTimeout(()=>document.getElementById('qps-custom-input').focus(),80);
+    info.innerHTML='Type any number above (1&ndash;100)';
+  } else {
+    wrap.style.display='none';
+    if(val==='auto'){
+      info.innerHTML='&#9881; <strong style="color:var(--accent5);">Auto</strong> &mdash; questions keep going until you tap Finish';
+    } else {
+      info.innerHTML='Each student gets <strong style="color:var(--accent5);">'+val+'</strong> question(s) per round';
+    }
+  }
+}
+function onQPSCustomInput(val){
+  const n=parseInt(val);
+  if(!isNaN(n)&&n>=1){
+    questionsPerStudent=n;
+    const info=document.getElementById('qps-info');
+    info.innerHTML='Each student gets <strong style="color:var(--accent5);">'+n+'</strong> question(s) per round';
+  }
+}
+
+function startRollCall(){
+  const from=parseInt(document.getElementById('r-from').value);
+  const to=parseInt(document.getElementById('r-to').value);
+  const err=document.getElementById('rc-error');err.style.display='none';
+  if(isNaN(from)||isNaN(to)||from>to||from<1){err.textContent='Enter valid roll number range.';err.style.display='block';return;}
+  const absentStr=document.getElementById('r-absent').value;
+  const absent=absentStr.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
+  students=[];
+  for(let i=from;i<=to;i++){if(!absent.includes(i))students.push(i);}
+  if(students.length<1){err.textContent='No students in range!';err.style.display='block';return;}
+  const secs=[...document.querySelectorAll('.sec-check.checked')].map(e=>e.dataset.sec);
+  if(!secs.length){err.textContent='Select at least one section.';err.style.display='block';return;}
+  // Build question pool
+  buildPool(secs);
+  // Init scores
+  scores={};studentQCount={};students.forEach(r=>{scores[r]={correct:0,wrong:0,total:0};studentQCount[r]=0;});
+  totalCorrect=0;totalWrong=0;round=1;roundIdx=0;seenQ.clear();
+  roundOrder=shuffle([...students]);
+  showScreen('quiz');
+  showNextStudent();
+}
+
+function buildPool(secs){
+  questionBank=[];
+  if(secs.includes('gk'))questionBank.push(...GK_POOL);
+  if(secs.includes('math'))questionBank.push(...MATH_POOL);
+  if(secs.includes('grammar'))questionBank.push(...GRAMMAR_POOL);
+  if(secs.includes('reasoning'))questionBank.push(...REASONING_POOL);
+  if(secs.includes('tables'))questionBank.push(...TABLES_POOL);
+  questionBank=shuffle(questionBank);
+}
+
+function pickQuestion(){
+  const unseen=questionBank.filter(q=>!seenQ.has(q.q));
+  if(unseen.length===0){seenQ.clear();return questionBank[Math.floor(Math.random()*questionBank.length)];}
+  return unseen[Math.floor(Math.random()*unseen.length)];
+}
+
+// ══ QUIZ FLOW ════════════════════════════════════════════════
+function showNextStudent(){
+  if(roundIdx>=roundOrder.length){
+    round++;
+    roundOrder=shuffle([...students]);
+    roundIdx=0;
+    toast('Round '+round+' started!');
+  }
+  currentStudent=roundOrder[roundIdx];
+  currentQ=pickQuestion();
+  seenQ.add(currentQ.q);
+  answered=false;
+  // Always show announcement for each new student
+  showAnnouncement(currentStudent, round, ()=>revealQuestion());
+}
+
+function showAnnouncement(roll, roundNum, onDone){
+  // Build overlay
+  const ov=document.createElement('div');
+  ov.className='announce-overlay';
+  const sc=scores[roll];
+  const pct=sc.total>0?Math.round(sc.correct/sc.total*100):0;
+  ov.innerHTML=
+    '<div class="announce-label">Round '+roundNum+' &mdash; Your Turn!</div>'+
+    '<div class="announce-roll">Roll '+roll+'</div>'+
+    '<div class="announce-sub">Score: '+sc.correct+'/'+sc.total+' ('+pct+'%)</div>'+
+    '<div class="announce-tap">Tap anywhere to continue &rarr;</div>';
+  document.body.appendChild(ov);
+
+  function dismiss(){
+    ov.classList.add('fade-out');
+    setTimeout(()=>{ov.remove();onDone();},400);
+    ov.removeEventListener('click',dismiss);
+    document.removeEventListener('keydown',keyDismiss);
+  }
+  function keyDismiss(e){if(e.key==='Enter'||e.key===' ')dismiss();}
+
+  ov.addEventListener('click',dismiss);
+  document.addEventListener('keydown',keyDismiss);
+
+  // Auto-dismiss after 3 seconds
+  setTimeout(()=>{if(document.body.contains(ov))dismiss();},3000);
+}
+
+function revealQuestion(){
+  document.getElementById('round-label').textContent='Round '+round;
+  document.getElementById('round-sub').textContent='Student '+(roundIdx+1)+' of '+roundOrder.length+' in this round';
+  document.getElementById('total-correct').textContent=totalCorrect;
+  document.getElementById('total-wrong').textContent=totalWrong;
+
+  const next=roundOrder.slice(roundIdx+1,roundIdx+4).map(r=>'Roll '+r).join(', ')||'Last in round!';
+  document.getElementById('queue-strip').textContent='Up next: '+next;
+
+  document.getElementById('current-roll').textContent='Roll '+currentStudent;
+  const sc=scores[currentStudent];
+  const pctNow=sc.total>0?Math.round(sc.correct/sc.total*100):0;
+  document.getElementById('current-tag').textContent=sc.correct+'/'+sc.total+' ('+pctNow+'%)';
+
+  document.getElementById('q-section').textContent=currentQ.sec;
+  document.getElementById('q-text').textContent=currentQ.q;
+  document.getElementById('q-card').classList.remove('correct-card','wrong-card');
+  document.getElementById('feedback').style.display='none';
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('next-hint').style.display='none';
+
+  const isText=currentQ.type==='text';
+  document.getElementById('options-grid').style.display=isText?'none':'grid';
+  document.getElementById('text-answer-row').style.display=isText?'block':'none';
+
+  if(isText){
+    const inp=document.getElementById('text-answer');inp.value='';inp.className='text-answer-input';inp.disabled=false;
+    setTimeout(()=>inp.focus(),120);
+  }else{
+    const grid=document.getElementById('options-grid');grid.innerHTML='';
+    const shuffOpts=shuffle([...currentQ.opts]);
+    currentQ._shuffled=shuffOpts;
+    shuffOpts.forEach((opt,i)=>{const btn=document.createElement('button');btn.className='opt-btn';btn.style.animationDelay=(i*0.07)+'s';btn.innerHTML='<span class="opt-letter">'+LETTERS[i]+'</span>'+opt;btn.onclick=()=>selectMCQ(opt,btn);grid.appendChild(btn);});
+  }
+
+  if(timerSecs>0)startTimer(timerSecs,()=>{if(!answered)autoTimeout();});else hideTimer();
+}
+
+function autoTimeout(){
+  if(answered)return;answered=true;
+  if(currentQ.type==='text'){document.getElementById('text-answer').disabled=true;}
+  else{document.querySelectorAll('#options-grid .opt-btn').forEach(b=>{b.disabled=true;if(b.textContent.includes(currentQ.a))b.classList.add('correct-opt');});}
+  document.getElementById('q-card').classList.add('wrong-card');
+  scores[currentStudent].wrong++;scores[currentStudent].total++;totalWrong++;
+  document.getElementById('total-wrong').textContent=totalWrong;
+  showFeedback(false,'Time up! Answer: '+currentQ.a);
+  document.getElementById('current-tag').textContent='Score: '+scores[currentStudent].correct+'/'+scores[currentStudent].total;
+}
+
+function selectMCQ(chosen,btn){
+  if(answered)return;stopTimer();answered=true;
+  document.querySelectorAll('#options-grid .opt-btn').forEach(b=>b.disabled=true);
+  const isCorrect=chosen===currentQ.a;
+  document.querySelectorAll('#options-grid .opt-btn').forEach(b=>{if(b.textContent.includes(currentQ.a))b.classList.add('correct-opt');});
+  if(!isCorrect)btn.classList.add('wrong-opt');
+  finishAnswer(isCorrect,isCorrect?'Correct!':'Wrong! Answer: '+currentQ.a);
+}
+
+function submitText(){
+  if(answered)return;stopTimer();
+  const inp=document.getElementById('text-answer');
+  const val=inp.value.trim();
+  if(!val){inp.focus();return;}
+  answered=true;
+  inp.disabled=true;
+  const sbtn=document.querySelector('.btn-submit');if(sbtn)sbtn.disabled=true;
+  const typed=parseFloat(val),correct=parseFloat(currentQ.a);
+  const isCorrect=!isNaN(typed)&&Math.abs(typed-correct)<0.001;
+  inp.classList.add(isCorrect?'correct-inp':'wrong-inp');
+  finishAnswer(isCorrect,isCorrect?'Correct! ✓':'Wrong! Answer: '+currentQ.a);
+}
+
+function finishAnswer(isCorrect,msg){
+  if(isCorrect){scores[currentStudent].correct++;totalCorrect++;}
+  else{scores[currentStudent].wrong++;totalWrong++;}
+  scores[currentStudent].total++;
+  document.getElementById('total-correct').textContent=totalCorrect;
+  document.getElementById('total-wrong').textContent=totalWrong;
+  document.getElementById('q-card').classList.add(isCorrect?'correct-card':'wrong-card');
+  document.getElementById('current-tag').textContent='Score: '+scores[currentStudent].correct+'/'+scores[currentStudent].total;
+  showFeedback(isCorrect,msg);
+}
+
+function showFeedback(ok,msg){
+  const fb=document.getElementById('feedback');
+  fb.textContent=(ok?'✅ ':'❌ ')+msg;
+  fb.className='feedback-box '+(ok?'ok':'bad');
+  fb.style.display='block';
+  const _limit=questionsPerStudent==='auto'?null:parseInt(questionsPerStudent);
+  const _qc=(studentQCount[currentStudent]||0)+1;
+  const _label=(_limit&&_qc<_limit)?'Ask Another ('+_qc+'/'+_limit+') →':'Next Student →';
+  document.getElementById('next-btn').textContent=_label;
+  document.getElementById('next-btn').style.display='block';
+  document.getElementById('next-hint').style.display='block';
+}
+
+function nextStudent(){
+  if(questionsPerStudent!=='auto'){
+    const limit=parseInt(questionsPerStudent);
+    studentQCount[currentStudent]=(studentQCount[currentStudent]||0)+1;
+    if(studentQCount[currentStudent]<limit){
+      // Same student, another question
+      currentQ=pickQuestion();
+      seenQ.add(currentQ.q);
+      answered=false;
+      revealQuestion();
+      return;
+    }
+  }
+  roundIdx++;
+  showNextStudent();
+}
+function endRollCall(){stopTimer();showLeaderboard();}
+function continueRound(){showScreen('quiz');}
+
+// ══ LEADERBOARD ════════════════════════════════════════════
+function showLeaderboard(){
+  showScreen('leaderboard');
+  const sorted=students.slice().sort((a,b)=>{
+    const pa=scores[a].total>0?scores[a].correct/scores[a].total:0;
+    const pb=scores[b].total>0?scores[b].correct/scores[b].total:0;
+    return pb-pa||scores[b].correct-scores[a].correct;
+  });
+  document.getElementById('lb-sub').textContent='Total: '+totalCorrect+' correct, '+totalWrong+' wrong — '+students.length+' students';
+  // Podium top 3
+  const podium=document.getElementById('podium-row');
+  podium.innerHTML='';
+  const medals=[{cls:'p2',m:'🥈'},{cls:'p1',m:'🥇'},{cls:'p3',m:'🥉'}];
+  const top3=[sorted[1],sorted[0],sorted[2]];
+  top3.forEach((roll,i)=>{
+    if(roll===undefined)return;
+    const sc=scores[roll];const pct=sc.total>0?Math.round(sc.correct/sc.total*100):0;
+    const div=document.createElement('div');div.className='podium-slot '+medals[i].cls;
+    div.innerHTML='<div class="p-bar"></div><div class="medal">'+medals[i].m+'</div><div class="p-roll">'+roll+'</div><div class="p-score">'+sc.correct+'/'+sc.total+' ('+pct+'%)</div>';
+    podium.appendChild(div);
+  });
+  // Table
+  const tbody=document.getElementById('lb-body');tbody.innerHTML='';
+  sorted.forEach((roll,idx)=>{
+    const sc=scores[roll];const pct=sc.total>0?Math.round(sc.correct/sc.total*100):0;
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td class="lb-rank">'+(idx+1)+'</td><td class="lb-roll">'+roll+'</td><td class="lb-score">'+sc.correct+'</td><td style="color:var(--wrong);font-family:\'Fredoka One\',cursive;font-size:1.1rem;">'+sc.wrong+'</td><td><span class="lb-pct">'+pct+'%</span></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function restartSetup(){stopTimer();showScreen('setup');}
+
+// ══ TIMER ════════════════════════════════════════════════════
+function startTimer(secs,onExpire){stopTimer();const wrap=document.getElementById('timer-wrap'),numEl=document.getElementById('timer-num'),barEl=document.getElementById('timer-bar');wrap.style.display='flex';wrap.classList.remove('warn');numEl.classList.remove('warn');barEl.classList.remove('warn');const C=113;let rem=secs;const tick=()=>{numEl.textContent=rem;barEl.style.strokeDashoffset=C*(1-rem/secs);if(rem<=3){wrap.classList.add('warn');numEl.classList.add('warn');barEl.classList.add('warn');}if(rem<=0){stopTimer();numEl.textContent='0';barEl.style.strokeDashoffset=C;onExpire();return;}rem--;};tick();timerInterval=setInterval(tick,1000);}
+function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null;}}
+function hideTimer(){stopTimer();document.getElementById('timer-wrap').style.display='none';}
+
+// ══ SCREEN ═══════════════════════════════════════════════════
+function showScreen(s){
+  currentScreen=s;
+  document.getElementById('password-screen').style.display=s==='password'?'block':'none';
+  document.getElementById('setup-screen').style.display=s==='setup'?'block':'none';
+  document.getElementById('quiz-screen').style.display=s==='quiz'?'block':'none';
+  document.getElementById('leaderboard-screen').style.display=s==='leaderboard'?'block':'none';
+}
+
+// ══ KEYBOARD ═════════════════════════════════════════════════
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'){
+    e.preventDefault();
+    if(currentScreen==='quiz'&&answered){nextStudent();return;}
+    if(currentScreen==='quiz'&&!answered&&currentQ&&currentQ.type==='text'){submitText();return;}
+  }
+});
+
+// ══ TOAST ═════════════════════════════════════════════════════
+function toast(msg,dur=2200){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),dur);}
+
+// Init
+setTimeout(()=>document.getElementById('pw-input').focus(),200);
+
+// ── AUTO-INIT API KEY (teacher sets once, works for all students) ──
+(function initAIKey(){
+  var HARDCODED_KEY = "YOUR_API_KEY_HERE";
+  // Auto-save key if not already saved
+  if(HARDCODED_KEY !== "YOUR_API_KEY_HERE" && !localStorage.getItem('tq_api_key')){
+    localStorage.setItem('tq_api_key', HARDCODED_KEY);
+  }
+  // Show welcome popup once per browser session
+  if(!sessionStorage.getItem('tq_welcomed')){
+    sessionStorage.setItem('tq_welcomed','1');
+    setTimeout(function(){
+      var ov=document.getElementById('ai-ready-overlay');
+      if(ov) ov.style.display='flex';
+    }, 350);
+  }
+  if(typeof updateBadge==='function') setTimeout(updateBadge, 50);
+})();
+function closeAIReady(){
+  var ov=document.getElementById('ai-ready-overlay');
+  if(ov){
+    ov.style.transition='opacity 0.3s ease';
+    ov.style.opacity='0';
+    setTimeout(function(){ov.style.display='none';ov.style.opacity='1';},300);
+  }
+}
+</script>
+
+  <!-- AI Ready popup (first visit per session) -->
+  <div id="ai-ready-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:9998;align-items:center;justify-content:center;">
+    <div style="background:var(--card);border:2px solid rgba(61,220,176,0.4);border-radius:24px;padding:36px 28px;max-width:360px;width:calc(100% - 32px);text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+      <div style="font-size:3rem;margin-bottom:14px;">&#10024;</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--accent3);margin-bottom:8px;">AI Quiz Ready!</div>
+      <div style="font-size:0.86rem;color:var(--muted);font-weight:700;line-height:1.75;margin-bottom:24px;">
+        All questions are generated fresh by<br>
+        <strong style="color:var(--text);">Claude AI</strong> &#8212; unique every session!<br>
+        <span style="font-size:0.8rem;color:var(--accent3);">&#127919; 6 difficulty levels &nbsp;&#9201; Auto timer</span>
+      </div>
+      <button onclick="closeAIReady()" style="width:100%;background:linear-gradient(135deg,#3ddcb0,#1fb89a);border:none;border-radius:14px;padding:16px;color:#0f0e1a;font-family:'Fredoka One',cursive;font-size:1.3rem;cursor:pointer;box-shadow:0 6px 20px rgba(61,220,176,0.3);letter-spacing:0.02em;">
+        Let&#8217;s Go! &#128640;
+      </button>
+    </div>
+  </div>
+</body>
+</html>
